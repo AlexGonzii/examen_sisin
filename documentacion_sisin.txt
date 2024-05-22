@@ -1,0 +1,159 @@
+config.vm.network "forwarded_port", guest: 80, host: 8080
+ config.vm.provider "virtualbox" do |vb|
+        vb.gui = true
+        vb.memory = "1024"
+        vb.cpus = 1 
+  sudo sed -i -e 's/\\/var\\/www\\/html/\\/vagrant/g' /etc/nginx/sites-enabled/default
+
+  sudo chmod -R 755 /vagrant
+
+  sudo chown -R www-data:www-data /vagrant
+
+  sudo systemctl restart nginx
+
+
+config.vm.hostname = "server-alexis-gonzalez"
+
+# Configuración de la primera máquina
+    config.vm.define "maquina1" do |maquina1|
+        maquina1.vm.box = "ubuntu/xenial64"
+        maquina1.vm.network "private_network", ip:"192.168.56.101"
+        maquina1.vm.synced_folder "directorio_compartido", "/compartido"
+    end
+
+    # Configuración de la primera máquina
+    config.vm.define "maquina2" do |maquina2|
+        maquina2.vm.box = "ubuntu/xenial64"
+        maquina2.vm.network "private_network", ip:"192.168.56.101"
+        maquina2.vm.synced_folder "directorio_compartido", "/compartido"
+    end
+
+crear vagrantfile 
+
+git init
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/xenial64"
+
+config.vm.provision "shell", inline: <<-SHELL
+
+  echo "--Insertar datos de ejemplo en la tabla 'empleados'" > /home/vagrant/datos_empleados.sql
+  echo "INSERT INTO gestion_empleados.empleados (nombre, apellido,
+  edad, salario, departamento) VALUES" >> /home/vagrant/datos_empleados.sql 
+SHELL
+  
+end
+
+vagrant up 
+vagrant ssh 
+sudo su --> hacer captura o recorte y explicar brevemente
+sudo apt update
+sudo su
+sudo apt intall mysql-server
+usuario root contraseña root
+sudo systemctl status mysql
+sudo systemctl stop mysql --> parar el servicio de mysql
+sudo systemctl start mysql --> iniciar el servidor de mysql
+sudo systemctl enable mysql --> permitir inicializacion del servidor
+
+CREATE DATABASE GESTION_EMPLEADOS;
+show databases;
+USE GESTION_EMPLEADOS;
+CREATE TABLE empleados(  shift+enter para entrar
+idEmpleado int auto_increment primary key,
+nombre varchar(100) not null,
+apellido varchar(100) not null,
+edad int,
+salario DECIMAL(10,2),
+departamento VARCHAR(100));
+
+show tables;
+
+vagrant reload
+Vagrant.configure("2") do |config|
+   
+  config.vm.box = "ubuntu/xenial64"
+  config.vm.network "private_network", ip: "192.168.50.48"
+  config.vm.synced_folder ".", "/ejemplo_inicial_mysql"
+
+config.vm.provision "shell", inline: <<-SHELL
+  
+  sudo apt update
+
+  sudo apt install -y nginx
+
+  sudo apt-get install -y php php-mysqli
+
+  echo "-- Insertar datos de ejemplo en la tabla 'EMPLEADOS'" > /home/vagrant/datos_empleados.sql
+  echo "INSERT INTO gestion_empleados.empleados (nombre,apellidos,edad,salario,departamento)VALUES" >> /home/vagrant/datos_empleados.sql
+  echo "('Miguel','Cueto',30,2500.00,'Ventas')," >> /home/vagrant/datos_empleados.sqlvagran
+  echo "('Manolo','Alonso',33,1250.00,'Marketing')," >> /home/vagrant/datos_empleados.sql
+  echo "('Raquel','Carril',25,2200.00,'Desarrollo')," >> /home/vagrant/datos_empleados.sql
+  echo "('Teresa','Molina',43,1400.00,'Ventas')," >> /home/vagrant/datos_empleados.sql
+  echo "('Pepe','Couce',55,1350.00,'Ventas')" >> /home/vagrant/datos_empleados.sql
+
+
+SHELL
+
+end
+
+en git => vagrant provision
+
+exit => en mysql 
+pwd 
+ls
+cat datos_libreria.sl
+mysql -u root -p
+SOURCE /home/vagrant/datos_empleados.sql => carga el archivo datos_libros.sql en MySQL desde la máquina virtual
+(en caso de equivocacion)
+exit dentro de mysql>
+sudo nano datos_empleados.sql
+mysql -u root -p
+show databases;
+use gestion_empleados;
+show tables;
+select * from empleados;
+
+vagrant reload 
+vagrant provision
+vagrant ssh
+sudo nano /etc/sites-enabled/default
+cambiar root /var/www/html por /ejemplo_inicial_mysql
+(cambiar el directorio por defecto donde nginx puede encontrar nuestro proyecto)
+sudo systemctl restart nginx
+
+cd /
+ls
+cd ejemplo_inicial_mysql
+ls
+cd backend
+ls
+cat conexionBBDD.php (imprimir el contenido del archivo)
+php conexionBBDD.php (hay que usar esta)
+
+alter database gestion_empleados character set utf8mb4 collate utf8mb4_unicode_ci;
+use gestion_empleados
+show tables;
+select * from empleados;
+select * from empleados where edad>20;
+
+vagrant ssh -c "php /ejemplo_inicial_mysql/backend/conexionBBDD.php"
+en la carpeta backend de la maquina virtual
+sudo apt-get install php7.0-fpm
+
+sudo nano /etc/nginx/sites-enabled/default
+poner debajo del root:
+location /backend/ {
+           # Configuración para manejar solicitudes en /backend/
+           include fastcgi_params;
+           fastcgi_param REQUEST_METHOD $request_method;
+           fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+           fastcgi_pass unix:/var/run/php/php7.0-fpm.sock; # Asegúrate de que coincida con la versión correcta
+        }
+sudo nginx -t => solo nginx para comprobar la sintaxis es correcta
+sudo systemctl restart nginx
+(en google)
+http://192.168.50.48/backend/conexionBBDD.php
+el contenido que se visuliza cambia si comentas uno u otro
+	//var_dump($data);
+	echo json_encode($data);
